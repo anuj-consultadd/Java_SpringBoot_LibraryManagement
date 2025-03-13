@@ -7,24 +7,13 @@ import com.library.management.entity.User;
 import com.library.management.exception.BadRequestException;
 import com.library.management.exception.ResourceNotFoundException;
 import com.library.management.repository.BorrowRepository;
-import com.library.management.repository.UserRepository;
-import org.hibernate.service.spi.InjectService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -41,14 +30,10 @@ public class BorrowServiceTest {
     @Mock
     private BorrowRepository borrowRepository;
 
-    @Spy
-    private UserRepository userRepository;
-
-
-    @InjectMocks
+    @Mock
     private BookService bookService;
 
-    @InjectMocks
+    @Mock
     private AuthService authService;
 
     @InjectMocks
@@ -64,24 +49,8 @@ public class BorrowServiceTest {
                 .id(1L)
                 .username("testuser")
                 .password("password")
-                .role(User.Role.USER)
+                .role(User.Role.valueOf("USER"))
                 .build();
-
-
-        // Create a mock Authentication object
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), null);
-
-        // Set up a SecurityContext with the mock Authentication
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        // Mock UserRepository behavior
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.ofNullable(user));
-
-
-
-
 
         book = Book.builder()
                 .id(1L)
@@ -97,12 +66,6 @@ public class BorrowServiceTest {
                 .borrowedAt(LocalDateTime.now())
                 .returnedAt(null)
                 .build();
-
-    }
-
-    @AfterEach
-    void tearDown() {
-        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -120,11 +83,10 @@ public class BorrowServiceTest {
     }
 
     @Test
-//    @WithMockUser(username = "testuser")
     @DisplayName("Happy Path - Get User Borrow History")
     void whenGetUserBorrowHistory_thenReturnUserBorrows() {
         when(authService.getCurrentUser()).thenReturn(user);
-        when(borrowRepository.findByUserOrderByBorrowedAtDesc(user)).thenReturn(List.of(borrow));
+        when(borrowRepository.findByUserOrderByBorrowedAtDesc(user)).thenReturn(Arrays.asList(borrow));
 
         List<BorrowDto> result = borrowService.getUserBorrowHistory();
 
