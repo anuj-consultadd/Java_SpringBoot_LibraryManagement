@@ -65,7 +65,6 @@ public class BookService {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Book", "id", id));
 
-        // Apply only the fields that are present in the updates map
         if (updates.containsKey("title")) {
             book.setTitle((String) updates.get("title"));
         }
