@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -124,6 +125,50 @@ public class BookServiceTest {
         verify(bookRepository).findById(1L);
         verify(bookRepository).save(any(Book.class));
     }
+
+    @Test
+    @DisplayName("Happy Path - Patch Book")
+    void whenPatchBook_thenOnlyProvidedFieldsShouldBeUpdated() {
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+
+
+        Map<String, Object> updates = Map.of(
+                "title", "Patched Title"
+        );
+
+
+        BookDto result = bookService.patchBook(1L, updates);
+
+
+        assertNotNull(result);
+        assertEquals("Patched Title", result.getTitle());
+        assertTrue(result.getAvailable());
+        assertEquals(book.getAuthor(), result.getAuthor());
+
+        verify(bookRepository).findById(1L);
+        verify(bookRepository).save(any(Book.class));
+    }
+
+    @Test
+    @DisplayName("UnHappy Path - Patch Non-existent Book")
+    void whenPatchNonExistentBook_thenResourceNotFoundExceptionShouldBeThrown() {
+
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Map<String, Object> updates = Map.of(
+                "title", "Patched Title"
+        );
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            bookService.patchBook(99L, updates);
+        });
+
+        verify(bookRepository).findById(99L);
+        verify(bookRepository, never()).save(any(Book.class));
+    }
+
 
     @Test
     @DisplayName("Unhappy Path - Update Non-existent Book")
