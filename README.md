@@ -11,6 +11,7 @@ A comprehensive Spring Boot application for managing a library's book inventory 
 - [Setup Instructions](#setup-instructions)
 - [Database Configuration](#database-configuration)
 - [Authentication](#authentication)
+- [Docker Setup](#docker-setup)
 - [Testing](#testing)
 
 ## Overview
@@ -26,6 +27,7 @@ This Library Management System provides a complete solution for libraries to man
 - Borrowing history tracking
 - API documentation with Swagger UI
 - Comprehensive exception handling
+- Containerized deployment with Docker
 
 ## Technologies Used
 
@@ -37,6 +39,8 @@ This Library Management System provides a complete solution for libraries to man
 - JWT Authentication
 - Maven
 - Swagger/OpenAPI
+- Docker
+- Docker Compose
 
 ## Project Structure
 
@@ -121,6 +125,7 @@ src/main/java/com/library/management/
 - Java 17 or higher
 - Maven
 - MySQL
+- Docker and Docker Compose (for containerized deployment)
 
 ### Installation Steps
 
@@ -128,7 +133,6 @@ src/main/java/com/library/management/
    ```
    https://github.com/anuj-consultadd/Java_SpringBoot_LibraryManagement.git
    cd Java_SpringBoot_LibraryManagement
-
    ```
 
 2. Configure the database in `application.properties` (see Database Configuration section)
@@ -185,6 +189,108 @@ The application uses JWT (JSON Web Tokens) for authentication:
    ```
 4. Use the refresh token at `/auth/refresh` to get a new access token when it expires
 
+## Docker Setup
+
+The application is containerized using Docker for easy deployment. The setup includes three containers:
+- Spring Boot application
+- MySQL database
+- phpMyAdmin for database management
+
+### Dockerfile
+
+The Dockerfile for the Spring Boot application:
+
+```dockerfile
+FROM openjdk:21
+WORKDIR /app
+
+COPY target/management-0.0.1-SNAPSHOT.jar /app/management-0.0.1-SNAPSHOT.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "management-0.0.1-SNAPSHOT.jar"]
+```
+
+### Docker Compose
+
+The `docker-compose.yml` file orchestrates the multi-container setup:
+
+```yaml
+version: "3.8"
+services:
+  springboot-app:
+    image: springboot-app
+    restart: always
+    build: .
+    ports:
+      - 8080:8080
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/library_management_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Anuj@1234
+    depends_on:
+      - mysqldb
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysqldb
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: Anuj@1234
+    depends_on:
+      - mysqldb
+    networks:
+      - app-network
+
+  mysqldb:
+    image: mysql:8.0
+    container_name: mysqldb
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_DATABASE: library_management_db
+      MYSQL_ROOT_PASSWORD: Anuj@1234
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+```
+
+### Running with Docker
+
+1. Build and start the containers:
+   ```
+   docker-compose up -d
+   ```
+
+2. Access the services:
+   - Spring Boot application: http://localhost:8080
+   - phpMyAdmin: http://localhost:8081 (login with username: root, password: Anuj@1234)
+   - MySQL database is accessible on port 3307
+
+3. Stop the containers:
+   ```
+   docker-compose down
+   ```
+
+4. To remove volumes when stopping:
+   ```
+   docker-compose down -v
+   ```
+
 ## Testing
 
 The application includes unit tests for the service layer using JUnit and Mockito. To run the tests:
@@ -200,4 +306,3 @@ Note: When running tests on Java 23, you may need to add the following VM argume
 ```
 
 This can be configured in your IDE's run configuration for tests.
-
