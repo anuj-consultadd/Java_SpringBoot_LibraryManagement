@@ -1,3 +1,5 @@
+Based on your request, here's how you can modify your README file to include details about the GitHub Actions workflow you've implemented:
+
 # Library Management System
 
 A comprehensive Spring Boot application for managing a library's book inventory and borrowing system.
@@ -12,6 +14,7 @@ A comprehensive Spring Boot application for managing a library's book inventory 
 - [Database Configuration](#database-configuration)
 - [Authentication](#authentication)
 - [Docker Setup](#docker-setup)
+- [CI/CD Pipeline](#ci-cd-pipeline)
 - [Testing](#testing)
 
 ## Overview
@@ -28,6 +31,7 @@ This Library Management System provides a complete solution for libraries to man
 - API documentation with Swagger UI
 - Comprehensive exception handling
 - Containerized deployment with Docker
+- Automated CI/CD with GitHub Actions
 
 ## Technologies Used
 
@@ -41,6 +45,7 @@ This Library Management System provides a complete solution for libraries to man
 - Swagger/OpenAPI
 - Docker
 - Docker Compose
+- GitHub Actions
 
 ## Project Structure
 
@@ -291,6 +296,39 @@ volumes:
    docker-compose down -v
    ```
 
+## CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and continuous deployment. The workflow is defined in `.github/workflows/build.yml`.
+
+### Workflow Configuration
+
+The CI/CD pipeline performs the following steps:
+
+1. **Trigger**: Runs on push to `main` and `beta` branches, and on pull requests to `main`
+2. **Environment**: Sets up Ubuntu with MySQL service for testing
+3. **Build Process**:
+   - Checks out the code
+   - Sets up JDK 17
+   - Builds the application with Maven
+   - Runs tests with JaCoCo for code coverage
+   - Uploads the JaCoCo report as an artifact
+   - Builds and pushes the Docker image to Docker Hub
+
+### Docker Hub Integration
+
+The workflow automatically builds and pushes the Docker image to Docker Hub with the following tags:
+- `latest`
+- `v1`
+
+This allows for easy deployment and version tracking.
+
+### Required Secrets
+
+To use this workflow, you need to set up the following secrets in your GitHub repository:
+- `DB_PASSWORD`: Password for the MySQL database
+- `DOCKER_USERNAME`: Your Docker Hub username
+- `DOCKER_PASSWORD`: Your Docker Hub password or access token
+
 ## Testing
 
 The application includes unit tests for the service layer using JUnit and Mockito. To run the tests:
@@ -304,5 +342,3 @@ Note: When running tests on Java 23, you may need to add the following VM argume
 ```
 -Dnet.bytebuddy.experimental=true
 ```
-
-This can be configured in your IDE's run configuration for tests.
