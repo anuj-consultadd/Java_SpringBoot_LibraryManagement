@@ -2,7 +2,7 @@ name: Spring Boot CI/CD
 
 on:
   push:
-    branches: [ main, beta ]
+    branches: [ main, beta, gamma ]
   pull_request:
     branches: [ main ]
 
